@@ -1,0 +1,319 @@
+{
+  "name": "Formulario Web NLAgencia",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### 1. Webhook\nRecibe los datos del formulario de contacto de la web. La URL de este nodo debe reemplazar la URL de Formspree en el archivo `script.js`.",
+        "height": 370,
+        "width": 252
+      },
+      "id": "f4131cea-0cab-44a1-bd73-0a0be3c004d3",
+      "name": "Nota: Webhook",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 2. Mapear Datos\nTransforma los campos del formulario (ej: 'first-name') al formato JSON que espera el workflow principal (ej: 'nombre').",
+        "height": 370,
+        "width": 252,
+        "color": 2
+      },
+      "id": "fa5c4482-b3ad-4aa8-a796-6fb4c2cd6107",
+      "name": "Nota: Mapeo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        336,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Ejecutar Workflow\nLlama al workflow principal 'Aurelio_NLAgencia' (ID: xFNrsSceTF0tPoyo) y le pasa los datos del lead ya formateados para que los guarde en Google Sheets y notifique por Telegram.",
+        "height": 362,
+        "width": 268,
+        "color": 3
+      },
+      "id": "ba9a0d73-8144-4540-9aae-9e5204da6125",
+      "name": "Nota: Ejecutar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        608,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2640599-58ca-4de2-8d02-cff1584a1c26",
+              "name": "Nombre",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "eb0125e3-5b0e-4a68-992e-766ffa9376ab",
+              "name": "Correo",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "03a4d444-2e35-436a-8847-7f3b755616ea",
+              "name": "Teléfono",
+              "value": "={{ $json.body.phone || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "d82ccd07-7b88-40fb-8e5e-efe669ef77e8",
+              "name": "Asunto",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        272
+      ],
+      "id": "12509029-aaa9-4a62-bd8b-14341fa235e1",
+      "name": "Set: Mapear Datos del Form"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-formulario-web",
+        "options": {}
+      },
+      "id": "55b06621-f625-49d1-83eb-63d3d6d369da",
+      "name": "Webhook: Recibe Formulario Web",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        272
+      ],
+      "webhookId": "TU_WEBHOOK_ID_IRA_AQUI"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $execution.id }}",
+            "Fecha": "={{ $today.toFormat('yyyy-MM-dd') }}",
+            "Nombre": "={{ $json.Nombre }}",
+            "Hora": "={{ $now.toFormat('HH:mm') }}",
+            "Correo": "={{ $json.Correo }}",
+            "Teléfono": "={{ $json.Teléfono }}",
+            "Asunto": "={{ $json.Asunto }}",
+            "Estado": "Nuevo Lead - Formulario Web"
+          },
+          "matchingColumns": [
+            "Correo"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Asunto",
+              "displayName": "Asunto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        272
+      ],
+      "id": "2d8351fa-3e30-428c-bd5f-3505cfd9ae85",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcZSbjllvaDsf7WV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1419397006",
+        "text": "==Nuevo Prospecto (Form Web):\n\n*Nombre:* {{ $json.Nombre }}\n*Correo:* {{ $json.Correo }}\n*Teléfono:* {{ $json['Teléfono'] }}\n\n*Consulta Inicial:* {{ $json.Asunto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        272
+      ],
+      "id": "5343c0dc-98a9-4e89-a23c-e0e600b2f3a1",
+      "name": "Send a text message",
+      "webhookId": "bf272619-ea48-4721-86fc-42122a532cd0",
+      "credentials": {
+        "telegramApi": {
+          "id": "j2qbrjobdLEF2ZA9",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "height": 368,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        896,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "db3d0d3d-3b58-43d1-8355-8f1f96718c1e",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set: Mapear Datos del Form": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Recibe Formulario Web": {
+      "main": [
+        [
+          {
+            "node": "Set: Mapear Datos del Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98f0af10-71dd-460a-acab-7c95fd8d0a11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fdffcaf648a7aa062da0ec843fff869b930e75adc5303a6a19e86b840cf683f2"
+  },
+  "id": "aHjx4xqqA63GWzzE",
+  "tags": []
+}
