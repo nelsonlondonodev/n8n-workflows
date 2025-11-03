@@ -1,0 +1,237 @@
+{
+  "name": "Aurelio_NLAgencia_Cal.com",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Hoja 1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre": "={{ $json.responses.name.value }}",
+            "Correo": "={{ $json.responses.email.value }}",
+            "Fecha": "={{ new Date($json.startTime).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }) }}",
+            "Hora": "={{ new Date($json.startTime).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' }) }}",
+            "Asunto": "={{ $json.additionalNotes }}",
+            "Estado": "Nuevo Lead - Cal.com",
+            "Id": "={{ $json.createdAt }}"
+          },
+          "matchingColumns": [
+            "Id"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Asunto",
+              "displayName": "Asunto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "id": "92ef841f-f5e2-4eaf-be9f-e297482d58af",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcZSbjllvaDsf7WV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1419397006",
+        "text": "=¡NUEVA CITA AGENDADA (via Cal.com)! 🎉\n\nEl prospecto *{{ $node[\"Cal.com Trigger\"].json.responses.name.value }}* ({{ $node[\"Cal.com Trigger\"].json.responses.email.value }}) ha reservado una llamada.\n\n📅 *Fecha:* {{ new Date($node[\"Cal.com Trigger\"].json.startTime).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "1057c927-73c6-4124-a9b9-335b850d4db7",
+      "name": "Send a text message",
+      "webhookId": "961dbd70-9666-461d-b5be-b288470bc609",
+      "credentials": {
+        "telegramApi": {
+          "id": "j2qbrjobdLEF2ZA9",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "height": 304,
+        "width": 704,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "7f43a2a6-6766-4d88-b1e6-b7f18c012a37",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "events": [
+          "BOOKING_CREATED"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.calTrigger",
+      "typeVersion": 2,
+      "position": [
+        16,
+        0
+      ],
+      "id": "8f387770-4267-4e41-87e7-7d6b16acb5e6",
+      "name": "Cal.com Trigger",
+      "webhookId": "179bab74-111d-4b41-b798-d7c4218fd8de",
+      "credentials": {
+        "calApi": {
+          "id": "9AioEjHu99cnUioI",
+          "name": "Cal account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cal.com Trigger": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "12cb99c4-210c-4b78-897a-9587c5887538",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fdffcaf648a7aa062da0ec843fff869b930e75adc5303a6a19e86b840cf683f2"
+  },
+  "id": "sB7QSbIL19hjStRs",
+  "tags": [
+    {
+      "updatedAt": "2025-09-28T16:58:02.211Z",
+      "createdAt": "2025-09-28T16:58:02.211Z",
+      "id": "Vw4ZtsC2SExt9mHJ",
+      "name": "Sellings"
+    }
+  ]
+}
