@@ -1,0 +1,343 @@
+{
+  "name": "Asistente de Voz - Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Message Trigger').first().json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "3d8a2487-6f15-4f0b-bb77-20ac746bd8ac",
+      "name": "Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Message Trigger').first().json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        80
+      ],
+      "id": "9825b4ac-95f1-40dc-badd-66d8234a4faf",
+      "name": "Reply in Telegram",
+      "webhookId": "b96b7a41-9806-455f-b72e-00aa638eda71",
+      "credentials": {
+        "telegramApi": {
+          "id": "FZH0FXQCYXfUnxKo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "69665864-a835-414f-b9b3-e956c43c35fb",
+      "name": "Get a file",
+      "webhookId": "e0769871-efe3-49da-81a5-2f88a6fdd33f",
+      "credentials": {
+        "telegramApi": {
+          "id": "FZH0FXQCYXfUnxKo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2b538077-d3d3-4713-b973-68748313ff97",
+              "leftValue": "={{ $json.message.voice }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        64,
+        80
+      ],
+      "id": "d387110f-5547-4815-aa5c-df9ae3807260",
+      "name": "Check if Audio file"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        512,
+        -16
+      ],
+      "id": "929e4965-7055-45de-84d8-7a841a8ac71a",
+      "name": "Transcribe audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "E7ASXFovwJjGLOin",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb912219-2436-4f04-8ffc-c1c20eb07344",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        176
+      ],
+      "id": "6ba80925-dc03-45f1-952d-f2ddda8c93ee",
+      "name": "Set field"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "id": "e8f16235-2eb8-42d7-b4fd-fe75e74408b2",
+      "name": "Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "E7ASXFovwJjGLOin",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text || $json.message.text }}",
+        "options": {
+          "systemMessage": "=# Telegram Personal AI Assistant System Prompt\n\nYou are a helpful personal AI assistant that communicates with users through Telegram.\n\n## Your Capabilities\n\nYou can help users with:\n- **General conversation** - Answer questions and provide information\n\n## Communication Style\n\n### Response Format\n- Keep responses conversational and friendly\n- Use appropriate length for Telegram (not too long)\n- Be helpful and informative\n- Match the user's tone and communication style\n\n### Voice Message Handling\n- When users send voice messages, respond naturally as if they spoke to you directly\n- Don't mention that their message was transcribed\n- Respond in a conversational way that flows naturally\n\n\n## Context Awareness\n\n- Remember the current date and time: **Today is {{ $now.format('cccc') }} the {{ $now.format('yyyy-MM-dd HH:mm') }}**\n- Use this information to provide relevant, timely responses\n- Reference \"today\", \"tomorrow\", \"this week\" appropriately\n\n## Important Guidelines\n\n- Maintain conversation context using the memory system\n- Ask clarifying questions when requests are ambiguous\n- Respect privacy - only access information when relevant to the request\n- If you can't help with something, suggest alternatives or redirect to your available capabilities\n\nRemember: You're a personal assistant, so be personable, helpful, and focused on making the user's day easier and more organized.\n\nToday is {{ $now.format('cccc') }} the {{ $now.format('yyyy-MM-dd HH:mm') }}."
+        }
+      },
+      "id": "9f099bd8-a8da-48ab-8a2a-3d4e1707456e",
+      "name": "Assistant Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Telegram assist\n\nThis is Telegram assist to web \"nelsonlondono.es\". ",
+        "height": 112,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "1d823548-0f3b-41ce-afe4-9da5cbe60638",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "a4076414-4e41-4930-9350-fb4913961788",
+      "name": "Telegram Message Trigger",
+      "webhookId": "e767a9c0-e464-45f9-af4a-7bf5e636d52e",
+      "credentials": {
+        "telegramApi": {
+          "id": "FZH0FXQCYXfUnxKo",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Audio file": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set field",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe audio": {
+      "main": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set field": {
+      "main": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assistant Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply in Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Message Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check if Audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "120c93d0-c585-4626-9cd9-3ffa63f0d341",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fdffcaf648a7aa062da0ec843fff869b930e75adc5303a6a19e86b840cf683f2"
+  },
+  "id": "y7Vo8NhbVZLZzmvP",
+  "tags": [
+    {
+      "updatedAt": "2025-10-22T12:12:16.083Z",
+      "createdAt": "2025-10-22T12:12:16.083Z",
+      "id": "0rjpmcHNPilzEwrK",
+      "name": "Personal"
+    }
+  ]
+}
