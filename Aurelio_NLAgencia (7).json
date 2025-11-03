@@ -1,0 +1,1015 @@
+{
+  "name": "Aurelio_NLAgencia",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80",
+          "mode": "list",
+          "cachedResultName": "Leads NLAgencia",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3BC4DyxPRKgNvcGdIY2VavH8UrQTNK2aUjBOj-BP80/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $execution.id }}",
+            "Fecha": "={{ $today.toFormat('yyyy-MM-dd') }}",
+            "Hora": "={{ $now.toFormat('HH:mm') }}",
+            "Nombre": "={{ $json.nombre }}",
+            "Correo": "={{ $json.correo }}",
+            "Teléfono": "={{ $json.telefono }}",
+            "Asunto": "={{ $json.pregunta }}",
+            "Estado": "Nuevo Lead - Chatbot"
+          },
+          "matchingColumns": [
+            "Correo"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Asunto",
+              "displayName": "Asunto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e1f5b391-ecca-42f1-81e7-478295a8ae1d",
+      "name": "4. Google Sheets: Guarda Datos del Cliente",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1136,
+        112
+      ],
+      "inputs": {
+        "input": [
+          {
+            "id": "848e1ddc-4a37-4d9f-a2e4-e0c159c9527a",
+            "name": "IF - Datos Recibidos"
+          }
+        ]
+      },
+      "data": "={{ { \"values\": [ [ $json.body.nombre, $json.body.correo, $json.body.telefono, $nodes['1. IA: Entiende al Cliente'].json.output.temas.join(', ') ] ] } }}",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcZSbjllvaDsf7WV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.correo }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.nombre }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "d5ecb38e-fbd4-4781-b873-9a3926ff49db",
+      "name": "3. IF: ¿El cliente dio sus datos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        880,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1419397006",
+        "text": "={{ $json.Estado }}:\n\n*Id:* {{ $json.Id }}\n*Nombre:* {{ $json.Nombre }}\n*Correo:* {{ $json.Correo }}\n*Teléfono:* {{ $json['Teléfono'] }}\n\n*Consulta Inicial:* {{ $json.Asunto }}\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "62d18a0e-2e1f-4f3d-a03d-be5f22edfa0e",
+      "name": "6. Telegram: Notifica al Equipo de Ventas",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        112
+      ],
+      "webhookId": "4802d561-7267-4325-a53f-bc2be17b7fbd",
+      "credentials": {
+        "telegramApi": {
+          "id": "j2qbrjobdLEF2ZA9",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Code in JavaScript').item.json.accion }}",
+              "value2": "email"
+            }
+          ]
+        }
+      },
+      "id": "d02753b4-0927-4d3d-a423-e267fb35088a",
+      "name": "5. IF: ¿Quiere correo o llamada?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Lógica del Workflow\n\nEste workflow está diseñado para ser simple. El nodo **Webhook** espera recibir toda la información en un solo envío para facilitar el aprendizaje.\n\nEn una aplicación real, tendrías múltiples webhooks o una lógica más compleja para una conversación fluida.",
+        "height": 216,
+        "width": 444,
+        "color": 4
+      },
+      "id": "027ff97a-2bcc-4813-aebc-34ab3b8f4592",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ response: $('Code in JavaScript').item.json.dateTime ? '¡Perfecto! Hemos agendado tu llamada. Revisa tu calendario para ver la invitación.' : '¡Listo! Te hemos enviado un correo con la información que solicitaste.' }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2864,
+        368
+      ],
+      "id": "b942df3b-c48c-45b2-ad17-d123e2747512",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "34b5ab96-ecf0-4195-93de-e3923c2062e5",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        128
+      ],
+      "id": "b9a68939-2f14-4433-b132-2e0c63fbae17",
+      "name": "Inicio_flujo",
+      "webhookId": "34b5ab96-ecf0-4195-93de-e3923c2062e5"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Set: Variables Globales').item.json.sessionId_final }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        464
+      ],
+      "id": "deb919ba-1091-4cb2-8a8c-15f9bc1f2ac4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "=# PERSPECTIVA: Eres \"Asistente de NLAgencia\"\n     \n     Eres \"Aurelio\", el asistente virtual de la agencia de marketing digital \"NLAgencia\". Tu tono es \n      cercano, proactivo y muy amigable, ¡siempre con un toque de entusiasmo! Imagina que estás charlando\n      con alguien para ayudarle a que su negocio despegue. Tu misión principal es hacer que los usuarios \n      se sientan bienvenidos, resolver sus dudas y convertirlos en prospectos cualificados.\n     \n     # OBJETIVOS:\n     \n     1.  **Responder Preguntas y Educar:** Responde a las preguntas de los usuarios sobre nuestros \n      servicios (SEO, diseño web, etc.) de forma clara, concisa y **utilizando analogías sencillas y \n      ejemplos prácticos** para reforzar la comprensión, especialmente cuando el usuario pregunta cómo un\n      servicio puede ayudar a su negocio (ej. \"cómo el SEO puede ayudar a mi restaurante\"). Para ello, \n      DEBES usar la herramienta `Info_NLAgencia`.\n     2.  **Capturar Prospectos:** Después de resolver una consulta, tu objetivo es guiar al usuario \n      hacia uno de los siguientes pasos: \"recibir la información por correo\" o \"agendar una llamada\".\n     3.  **Extraer Datos:** Si el usuario acepta una de las dos opciones, debes solicitar amablemente su\n      **nombre completo, correo electrónico y número de teléfono**.\n    \n    # REGLAS DE ACTUACIÓN (El Flujo de la Conversación):\n    \n    1.  **Gestión de Relevancia y Saludos (MUY IMPORTANTE):** Tu primera tarea es evaluar el mensaje \n      del usuario. Si es un simple saludo (ej: \"hola\", \"buenos días\") o no parece relacionado con \n      servicios de marketing, Y LA CONVERSACIÓN ACABA DE EMPEZAR (no hay historial previo), debes \n      responder con: *\"¡Hola! Soy Aurelio, tu asistente virtual. ¿En qué puedo ayudarte con nuestros \n      servicios de marketing?\"*. Si la conversación ya está en curso (por ejemplo, si tú acabas de hacer \n      una pregunta), debes responder siempre de forma natural y contextual a lo que el usuario diga, sin \n      importar si su respuesta es corta o no contiene palabras clave.\n    \n    2.  **Analiza y Busca:** Al recibir la primera pregunta de un usuario sobre servicios, primero \n      entiéndela y luego utiliza inmediatamente la herramienta `Info_NLAgencia` para encontrar la \n      respuesta.\n    \n    3.  **Gestión de Mensajes Complejos:** Si un usuario envía un mensaje muy largo con múltiples \n      preguntas o datos a la vez, procesa la información de forma secuencial. Primero, responde a la \n      pregunta principal sobre los servicios. Una vez resuelta, si ya tienes los datos del cliente \n      gracias a ese primer mensaje, procede directamente a confirmar la captación de datos y ofrece el \n      siguiente paso (correo/llamada). No intentes hacer todo en una sola respuesta para evitar \n      confusiones y mantener el control de la conversación.\n    \n    4.  **Gestión de Preguntas sobre Precios (Venta de Valor):** Si un usuario pregunta directamente \n      por el precio de un servicio (ej. \"¿cuánto vale el SEO?\"), **NO respondas inmediatamente con la \n      cifra.** En su lugar, sigue este proceso de venta consultiva:\n        *   **Paso 1: Acuse de Recibo y Pivote:** Reconoce su pregunta y explícale por qué es \n      importante entender el valor primero. Ejemplo: *\"¡Claro! En un momento te doy la información de \n      precios. Antes, me parece importante contarte brevemente los beneficios, porque en NLAgencia no \n      vendemos servicios, sino resultados. Nuestro enfoque es un 'win-win'.\"*\n        *   **Paso 2: Explicación de Beneficios:** Describe los beneficios clave del servicio, \n      basándote en la información de la herramienta `Info_NLAgencia`.\n        *   **Paso 3: Pregunta de Cualificación:** Haz una pregunta para entender mejor su necesidad. \n      Ejemplo: *\"Para asegurarme de que este servicio es lo que realmente necesitas, ¿podrías contarme un\n      poco sobre tu negocio y tus objetivos?\"*\n        *   **Paso 4: Entrega del Precio:** Una vez que el usuario responda, AHORA SÍ, dale el precio. \n      Ejemplo: *\"Gracias por la información. Para un negocio como el tuyo, nuestro plan de optimización \n      continua de SEO tiene un precio desde 275 €/mes.\"*\n        *   **Paso 5: Llamada a la Acción:** Inmediatamente después de dar el precio, ofrece el \n      siguiente paso con la regla #7.\n    \n    5.  **Gestión de Servicios NO Ofrecidos (MUY IMPORTANTE):** Si un usuario pregunta por un servicio \n      que no está explícitamente en tu base de conocimiento (como \"gestión de redes sociales\"), **NO \n      digas un \"no\" rotundo**. En su lugar, adopta un enfoque consultivo. Responde explicando que, aunque\n      tu especialidad no es la gestión diaria de redes, los servicios que SÍ ofreces (como branding, \n      diseño web y SEO) son la base fundamental para que cualquier estrategia en redes sociales tenga \n      éxito. Inmediatamente después, haz una pregunta para redirigir la conversación y entender su \n      negocio.\n        *   **Ejemplo de respuesta:** *\"¡Entiendo perfectamente tu interés en las redes sociales! \n      Aunque no llevamos la gestión del día a día, nos especializamos en crear los pilares para que tus \n      redes sociales realmente funcionen: una marca sólida, una web profesional que convierta visitas, y \n      un buen posicionamiento con SEO. Para darte una mejor orientación, ¿podrías contarme un poco sobre \n      tu negocio o producto?\"*\n    \n    6.  **Reconocer el Fin de la Conversación (REGLA CRÍTICA):** Si el usuario ya ha recibido la \n      información o una confirmación (por correo o llamada), y su siguiente mensaje es de agradecimiento \n      (ej: \"gracias\", \"perfecto\", \"recibido\", \"muchas gracias por la buena información\") o de cierre, la \n      conversación ha terminado. Tu respuesta debe ser un cierre amable y final. NO vuelvas a ofrecer \n      enviarle un correo o agendar una llamada.\n        *   **Ejemplo de respuesta final:** *\"¡De nada! Ha sido un placer ayudarte. Si en el futuro \n      tienes más preguntas o quieres iniciar un proyecto, no dudes en volver a contactarme. ¡Que tengas \n      un excelente día!\"*\n    \n    7.  **Responde y Ofrece:** Si la conversation no ha terminado (según las reglas anteriores), \n      proporciona la información que encontraste de forma clara y concisa. Inmediatamente después, \n      pregunta qué le gustaría hacer a continuación. Ejemplo: \"¡Espero que esto te sea de gran ayuda! ¿Qu\n      é te parece si te envío la info a tu correo para que la tengas a mano, o si prefieres, agendamos \n      una llamada rápida para charlarlo mejor?\"\n    \n    7.1. **Si elige correo(email), no enviar los datos al nodo corespondiente hasta que tengas la \n      información completa. Ej. \"nombre, correo, telefono, pregunta\".\n    \n    7.2. **Si elige llamada(agendar), no enviar los datos al nodo corespondiente hasta que tengas la \n      información completa. Ej. \"nombre, correo, telefono, pregunta\".\n    \n    ***(REGLA #8 MODIFICADA)***\n    8.  **Petición de Datos:**\n        *   Tanto si el usuario elige \"correo\" como si elige \"llamada\", tu siguiente paso es pedirle \n      amablemente su **nombre completo, correo electrónico y número de teléfono**.\n    \n    9.  **Extrae Todos los Datos:** Una vez que el usuario responda, extrae la información clave: \n      **nombre, correo, teléfono** y **tema de interes**.\n    \n    ***(REGLA #9.1 ELIMINADA)***\n    *(La antigua regla 9.1 sobre zona horaria ha sido eliminada)*\n    \n    10. **Confirma y Cierra:** Finaliza la conversación con un mensaje de confirmación. Ejemplo: \n      \"¡Genial, ya tengo todo apuntado! En breve, uno de nuestros expertos se pondrá en contacto contigo.\n      ¡Que tengas un día estupendo!\"\n    \n    ***(REGLA #11 MODIFICADA)***\n    11. **Regla del JSON Final (CRÍTICO):** Cuando hayas recopilado todos los datos necesarios (nombre,\n      correo, teléfono), \"tu única y final respuesta DEBE ser un bloque de código JSON y nada más\". No \n      añadas ningún texto explicativo antes o después. Sigue estas sub-reglas estrictamente:\n        *   **Sub-regla 11.1 (Contexto de la Pregunta):** El campo `\"pregunta\"` DEBE contener siempre \n      el tema principal y original de la consulta (ej. \"SEO\", \"Diseño Web\", \"Branding\"). Debes recordarlo\n      del historial de la conversación, NUNCA vuelvas a preguntárselo al usuario.\n        *   **Sub-regla 11.2 (Lógica de Acción):** Debes incluir dos nuevos campos para indicar la \n      acción deseada.\n            *   El campo `\"dateTime\"` DEBE ser **siempre `null`**.\n            *   Debes añadir un nuevo campo llamado `\"accion\"` que indique la elección del usuario. Su \n      valor debe ser `\"email\"` o `\"llamada\"`.\n    \n        La estructura final debe ser así (ejemplo si elige \"llamada\"):\n      {\n        \"nombre\": \"Aurelio Cliente\",\n        \"correo\": \"cliente@ejemplo.com\",\n        \"telefono\": \"+34600123456\",\n        \"pregunta\": \"Servicio de SEO\",\n        \"dateTime\": null,\n        \"accion\": \"llamada\"\n      }\n        *(Nota: pon \"email\" si el usuario eligió el correo)*\n    \n    12. **Regla de Idioma (MUY IMPORTANTE):** Tu única lengua de comunicación es el español. Bajo \n     ninguna circunstancia debes responder en otro idioma. Si un usuario te escribe en inglés o cualquier\n     otro idioma, o te pide que cambies de idioma, DEBES responder amablemente en español con un mensaje \n     como: \"Hola, gracias por tu interés. De momento solo puedo atenderte en español. ¿En qué puedo \n     ayudarte con nuestros servicios de marketing?\" y luego continuar la conversación en español."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        128
+      ],
+      "id": "31cac88a-c926-4c96-a79a-78adee0e420b",
+      "name": "Aurelio"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        352
+      ],
+      "id": "317f0aec-eb77-4e53-ba44-0e7eebd759a2",
+      "name": "Séneca",
+      "credentials": {
+        "openAiApi": {
+          "id": "E7ASXFovwJjGLOin",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Accedemos al texto que nos llega del nodo anterior (\"Aurelio\")\nconst inputText = item.json.output;\n\n// Usamos una expresión regular para encontrar el bloque JSON que contenga datos de cliente (ej: \"nombre\")\nconst match = inputText.match(/{[\\s\\S]*\"nombre\"[\\s\\S]*}/);\n\n// Si se encuentra el bloque de datos del cliente, lo procesamos.\nif (match && match[0]) {\n  try {\n    // Intentamos convertir (parsear) la coincidencia encontrada\n    const jsonData = JSON.parse(match[0]);\n\n    // Devolvemos el objeto JSON parseado\n    return { json: jsonData };\n\n  } catch (error) {\n    // Si hay un error de parseo, devolvemos la conversación original para no romper el chat.\n    return item;\n  }\n}\n\n// Si no se encuentra un bloque de datos, es una conversación. Devolvemos el item original.\nreturn item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        128
+      ],
+      "id": "7d80ee12-3138-4ffb-a676-54c7d2fb6dc4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "=https://docs.google.com/document/d/1jg30qMHEl8dwGNOQCemGvLHqQDs3PJKr7LxBM1CsdNw/edit?usp=sharing"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        416,
+        336
+      ],
+      "id": "db15325f-69f1-477d-9bf6-73d7d46f487a",
+      "name": "Info_NLAgencia",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "6Os75KqCfm6aecQ3",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ response: $json.output }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        880,
+        448
+      ],
+      "id": "1d14e90d-49c6-4741-bf40-946a60b06808",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "🏁 **Inicio: Webhook**\n\nEste es el punto de entrada. Recibe el mensaje del usuario (ej. `body.message`) y el `body.sessionId` para gestionar la memoria del chat.",
+        "height": 594,
+        "width": 444
+      },
+      "id": "15247675-43b1-4266-9fcb-3e1858c4db66",
+      "name": "Nota: Webhook Trigger",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "content": "🧠 **Cerebro del Asistente (Aurelio)**\n\nEste agente de LangChain procesa el mensaje. Usa:\n- `Séneca`: El modelo LLM (GPT-4 mini) para pensar.\n- `Simple Memory`: Para recordar la conversación.\n- `Info_NLAgencia`: (Google Doc) como base de conocimiento para responder sobre servicios.",
+        "height": 750,
+        "width": 364,
+        "color": 2
+      },
+      "id": "8af46d8b-dde9-442e-9d0f-44453f369a56",
+      "name": "Nota: Agente AI",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "🔍 **Parser: ¿Chat o Lead?**\n\nEste nodo de Código (JavaScript) es clave. Revisa la respuesta del AI:\n\n- **Si es chat normal:** Pasa el texto.\n- **Si es un JSON (con 'nombre', 'correo', etc.):** Extrae los datos del cliente.",
+        "height": 474,
+        "width": 236,
+        "color": 3
+      },
+      "id": "bbc1a1e9-e4dd-4ac1-8e64-d3f13d1fb981",
+      "name": "Nota: Parser JS",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "🤔 **Verificación de Datos**\n\nEl nodo `IF` comprueba si el Parser extrajo datos de un cliente (nombre y correo no están vacíos).\n\n- **Ruta [TRUE] (Abajo):** ¡Lead Capturado! Inicia el proceso de guardado.\n- **Ruta [FALSE] (Recto):** Conversación en curso. Devuelve la respuesta del chat.",
+        "height": 478,
+        "width": 252,
+        "color": 7
+      },
+      "id": "ddb5ee17-c1ee-4849-967e-095899d52736",
+      "name": "Nota: IF Datos",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "💬 **Flujo: Conversación Activa**\n\nLa respuesta del AI (texto normal) se envía de vuelta al usuario para continuar la charla.",
+        "height": 256,
+        "width": 508,
+        "color": 5
+      },
+      "id": "5b6acbe2-2af0-4d14-9789-cc81c3f15577",
+      "name": "Nota: Flujo Chat",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "✅ **Flujo: Lead Capturado**\n\n1.  **Google Sheets**: Guarda/actualiza los datos del lead en la hoja de cálculo.\n2.  **Telegram**: Envía una notificación instantánea al equipo de ventas.",
+        "height": 758,
+        "width": 412,
+        "color": 6
+      },
+      "id": "0329388a-7718-4b93-9fea-fdf12e5abb4e",
+      "name": "Nota: Flujo Lead",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "🎬 **Acción Final: ¿Correo o Llamada?**\n\nBasado en el campo `accion` del JSON del lead:\n\n- **[TRUE] (Recto):** El usuario pidió email. Se envía el correo de Gmail.\n- **[FALSE] (Abajo):** El usuario pidió llamada. Se envía la respuesta con el enlace de Calendly.",
+        "height": 750,
+        "width": 700,
+        "color": 4
+      },
+      "id": "a372302b-d79f-4aa3-adc9-fa26ecb55b30",
+      "name": "Nota: IF Acción",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dcdd6892-bb63-4a29-b4cf-0317f3a8b0c1",
+              "name": "email_html",
+              "value": "=`<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Información sobre nuestros servicios - NLAgencia</title>\n    <style>\n      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }\n      .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f4; }\n      .webkit { max-width: 600px; background-color: #ffffff; }\n      .outer { Margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }\n      .header { text-align: center; padding: 20px; border-bottom: 1px solid #eeeeee; }\n      .header h1 { color: #2c3e50; margin: 0; font-size: 24px; }\n      .content { padding: 30px 20px; }\n      .content p { margin-bottom: 1.2em; }\n      .cta-button { display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }\n      .cta-button:hover { background-color: #2980b9; }\n      .footer { text-align: center; padding: 20px; border-top: 1px solid #eeeeee; font-size: 0.9em; color: #777; }\n    </style>\n</head>\n<body>\n    <center class=\"wrapper\">\n      <div class=\"webkit\">\n        <table class=\"outer\" align=\"center\">\n          <tr>\n            <td>\n              <div class=\"header\" style=\"text-align: center; padding: 20px; border-bottom: 1px solid #eeeeee;\">\n                <img src=\"https://nelsonlondono.es/image/logo-nelson.webp\" alt=\"Logo de NLAgencia\" style=\"display: block; margin: 0 auto; width: 220px; height: auto;\">\n              </div>\n              <div class=\"content\">\n                <p>Hola {{ $json.Nombre }},</p>\n                <p>Gracias por tu interés en NLAgencia. Tal como lo solicitaste, aquí tienes más información sobre nuestros servicios de <strong>{{ $json.nombre_servicio }}</strong>.</p>\n                \n                <p>{{ $json.detalle_servicio }}</p>\n                \n                <p>Entendemos que cada negocio es único. Por eso, el siguiente paso ideal es tener una breve charla para entender tus objetivos y ver cómo podemos ayudarte a alcanzarlos.</p>\n                <p><strong>¿Listo para dar el siguiente paso?</strong></p>\n                \n                <p style=\"text-align:center; margin: 30px 0;\">\n                  <a href=\"{{ $('Set: Variables Globales').item.json.link_agenda }}\" target=\"_blank\" class=\"cta-button\">Agendar Consultoría Gratuita</a>\n                </p>\n                \n                <p>Si prefieres, simplemente responde a este correo con cualquier duda que tengas. Estaré encantado de ayudarte.</p>\n              </div>\n              <div class=\"footer\">\n                <p>Un saludo cordial,<br><strong>Nelson Londoño</strong><br>Fundador, NLAgencia</p>\n              </div>\n            </td>\n          </tr>\n        </table>\n      </div>\n    </center>\n</body>\n</html>`",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2384,
+        368
+      ],
+      "id": "2482dcdc-5a5c-4a1b-9130-904e13560665",
+      "name": "Set: Plantilla Email"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.pregunta }}",
+                    "rightValue": "SEO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "94ff14f2-209f-48ea-a60e-41adc235a104"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e37305f3-da17-49f6-9804-31d8919e421d",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.pregunta }}",
+                    "rightValue": "Diseño Web",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6221bdc2-4c02-4f7e-8952-9c6cccb92bbe",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1776,
+        80
+      ],
+      "id": "d94b668d-0aeb-417a-85d6-eda557dd58fb",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fba3d87a-ccf7-4bd3-8a7d-1599bfa570fb",
+              "name": "nombre_servicio",
+              "value": "Optimización SEO",
+              "type": "string"
+            },
+            {
+              "id": "42d233a1-5ec3-44f1-baa5-4befe9d7be36",
+              "name": "detalle_servicio",
+              "value": "=\n<p>¡El SEO (Optimización para Motores de Búsqueda) es clave! Es como poner tu negocio en la calle principal de Internet: <strong>hacemos que tus clientes te encuentren justo cuando te están buscando en Google.</strong></p>\n\n<p>Nuestro servicio de <strong>Optimización SEO</strong> no se trata de trucos, sino de construir una base sólida para tu negocio:</p>\n<ul style=\"padding-left: 20px;\">\n  <li><strong>Auditoría SEO Completa:</strong> Analizamos tu web y la de tu competencia para encontrar oportunidades de oro.</li>\n  <li><strong>Optimización On-Page:</strong> Ajustamos tus títulos, descripciones y velocidad de carga para que Google \"se enamore\" de tu sitio.</li>\n  <li><strong>SEO Local:</strong> Imprescindible si tienes un negocio físico. Te posicionamos en Google Maps para atraer clientes de tu zona.</li>\n  <li><strong>Creación de Contenido:</strong> Desarrollamos artículos de blog y páginas de servicio que responden a las preguntas de tus clientes y atraen tráfico de calidad.</li>\n</ul>\n<p>El SEO es una maratón, no un sprint, pero es la inversión con el retorno más sostenible a largo plazo.</p>\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        -48
+      ],
+      "id": "e35b1b41-1eaa-4c22-a0a1-06e0e7b66f2f",
+      "name": "Set: Contenido SEO"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08050109-87c6-4bf1-99af-f442417d0625",
+              "name": "nombre_servicio",
+              "value": "Diseño Web Profesional",
+              "type": "string"
+            },
+            {
+              "id": "42d71d51-4a7f-4850-a2ad-8c6ba66379dc",
+              "name": "detalle_servicio",
+              "value": "=` <p>Tu página web es tu escaparate digital. Nos aseguramos de que no solo sea atractiva, sino que esté <strong>optimizada para convertir visitantes en clientes.</strong></p>  <p>Nuestro servicio de <strong>Diseño Web Profesional</strong> se enfoca en 3 pilares clave:</p> <ul style=\"padding-left: 20px;\">   <li><strong>Diseño Responsive:</strong> Se verá perfecto en ordenadores, tablets y, lo más importante, en móviles.</li>   <li><strong>Velocidad de Carga (WPO):</strong> Un sitio rápido es crucial. Optimizamos cada imagen y script para que tu web vuele.</li>   <li><strong>Experiencia de Usuario (UX):</strong> Diseñamos un camino claro para que tus clientes encuentren lo que buscan y te contacten fácilmente.</li> </ul> <p>Puedes ver algunos de nuestros trabajos recientes en <a href=\"https://tu-agencia.com/portafolio\" target=\"_blank\">nuestro portafolio</a>.</p> `",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        96
+      ],
+      "id": "861a6738-b46f-4a99-bf55-501ea4b0dbc5",
+      "name": "Set: Contenido Web"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7594356c-3019-4272-be22-5aa1653d82ce",
+              "name": "nombre_servicio",
+              "value": "=Nuestros Servicios de Marketing",
+              "type": "string"
+            },
+            {
+              "id": "6aceeda4-66cd-4425-9784-a641b5260622",
+              "name": "detalle_servicio",
+              "value": "=`\n<p>¡Gracias por tu consulta específica sobre <strong>${$('Code in JavaScript').item.json.pregunta}</strong>!</p>\n\n<p>Es un tema muy interesante. Uno de nuestros especialistas revisará tu solicitud y se pondrá en contacto contigo en breve para darte una respuesta detallada y ver cómo podríamos ayudarte con eso.</p>\n\n<p>Mientras tanto, te comento que nuestra especialidad es integrar consultas como la tuya dentro de una estrategia de marketing digital completa. Los pilares sobre los que construimos el éxito de nuestros clientes son:</p>\n\n<ul style=\"padding-left: 20px;\">\n  <li><strong>Diseño y Desarrollo Web Profesional:</strong> Creamos sitios web rápidos y optimizados para convertir.</li>\n  <li><strong>Posicionamiento SEO (Local y Nacional):</strong> Hacemos que tus clientes te encuentren en Google.</li>\n</ul>\n\n<p>Te invitamos a ver cómo hemos aplicado estas estrategias para otros negocios en <a href=\"httpsm://nlagencia.com/portafolio\" target=\"_blank\">nuestro portafolio</a> (reemplaza este enlace por el tuyo).</p>\n`",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        256
+      ],
+      "id": "a850c13c-af1b-44cb-b759-6639eb18437a",
+      "name": "Set: Contenido General"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2368,
+        80
+      ],
+      "id": "559de620-8a3a-44f8-aa6c-2c971859189f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0b6f17a3-a653-4430-b8db-59ac0d71df07",
+              "name": "link_agenda",
+              "value": "https://cal.com/nelson-londono-dpobgm/estrategia15",
+              "type": "string"
+            },
+            {
+              "id": "b4011422-aab1-4479-af94-2b3c82c214b1",
+              "name": "sessionId_final",
+              "value": "={{ $json.body.sessionId ? $json.body.sessionId : $runId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        128
+      ],
+      "id": "b69cd639-deb9-471d-b8b5-9527b8d0e34b",
+      "name": "Set: Variables Globales"
+    },
+    {
+      "parameters": {
+        "fromEmail": "Nelson Londoño <contacto@nelsonlondono.es>",
+        "toEmail": "={{ $('Code in JavaScript').item.json.correo }}",
+        "subject": "Información sobre nuestros servicios - NLAgencia",
+        "html": "={{ $('Set: Plantilla Email').item.json.email_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2640,
+        368
+      ],
+      "id": "1ad7d819-417f-4dff-91bf-7416accdae7b",
+      "name": "Send email",
+      "webhookId": "37692a0e-214e-42c7-baea-be7ef4ceaeb5",
+      "credentials": {
+        "smtp": {
+          "id": "VpW8FmjBr7DgFyHQ",
+          "name": "Hostinger SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "height": 752,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2224,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "b56b5fc1-fa00-48c1-9361-2853cd5f2efc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ response: `¡Perfecto, ${$('Code in JavaScript').item.json.nombre}! He guardado tus datos.<br><br><a \n     href=\"${$('Set: Variables Globales').item.json.link_agenda}\" target=\"_blank\" rel=\"noopener noreferrer\">Haz clic aquí para agendar tu llamada \n     gratuita de 15 minutos</a>` }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1584,
+        368
+      ],
+      "id": "bbb3db00-20d4-45e8-8d93-a732d132f830",
+      "name": "Respond: Envia Link Agenda"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "4. Google Sheets: Guarda Datos del Cliente": {
+      "main": [
+        [
+          {
+            "node": "6. Telegram: Notifica al Equipo de Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. IF: ¿El cliente dio sus datos?": {
+      "main": [
+        [
+          {
+            "node": "4. Google Sheets: Guarda Datos del Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. IF: ¿Quiere correo o llamada?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Envia Link Agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Telegram: Notifica al Equipo de Ventas": {
+      "main": [
+        [
+          {
+            "node": "5. IF: ¿Quiere correo o llamada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inicio_flujo": {
+      "main": [
+        [
+          {
+            "node": "Set: Variables Globales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Aurelio",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aurelio": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Séneca": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Aurelio",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "3. IF: ¿El cliente dio sus datos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info_NLAgencia": {
+      "ai_tool": [
+        [
+          {
+            "node": "Aurelio",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Plantilla Email": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Set: Contenido SEO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: Contenido Web",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: Contenido General",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Contenido General": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Set: Contenido SEO": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Contenido Web": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Set: Plantilla Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Variables Globales": {
+      "main": [
+        [
+          {
+            "node": "Aurelio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b61deaae-a138-4be5-8350-1a816dc8b0ad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fdffcaf648a7aa062da0ec843fff869b930e75adc5303a6a19e86b840cf683f2"
+  },
+  "id": "xFNrsSceTF0tPoyo",
+  "tags": [
+    {
+      "updatedAt": "2025-09-28T16:58:02.211Z",
+      "createdAt": "2025-09-28T16:58:02.211Z",
+      "id": "Vw4ZtsC2SExt9mHJ",
+      "name": "Sellings"
+    }
+  ]
+}
