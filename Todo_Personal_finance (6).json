@@ -1,0 +1,720 @@
+{
+  "name": "Todo_Personal_finance",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Message Trigger').first().json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "457adcfd-80ad-40bb-ada6-03fb82324e26",
+      "name": "Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Message Trigger').first().json.message.chat.id }}",
+        "text": "={{ $json.original_output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        640
+      ],
+      "id": "122e3088-183a-4d05-b8d3-8feb6de3d242",
+      "name": "Reply in Telegram",
+      "webhookId": "b96b7a41-9806-455f-b72e-00aa638eda71",
+      "credentials": {
+        "telegramApi": {
+          "id": "bmdlKiZzs6zswuyS",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        64
+      ],
+      "id": "62eb3d33-cf81-46b3-b280-f10c9db65189",
+      "name": "Get a file",
+      "webhookId": "e0769871-efe3-49da-81a5-2f88a6fdd33f",
+      "credentials": {
+        "telegramApi": {
+          "id": "bmdlKiZzs6zswuyS",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2b538077-d3d3-4713-b973-68748313ff97",
+              "leftValue": "={{ $json.message.voice }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        208
+      ],
+      "id": "630fa20f-3c3b-4e74-8784-47b695e83c4f",
+      "name": "Check if Audio file"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        752,
+        64
+      ],
+      "id": "ee6086f6-79a0-49e4-a7c3-0f672f0fd6bd",
+      "name": "Transcribe audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "E7ASXFovwJjGLOin",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb912219-2436-4f04-8ffc-c1c20eb07344",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        224
+      ],
+      "id": "e0067650-9898-46b9-9eff-d04a5e4fd6d0",
+      "name": "Set field"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "id": "603ceb4f-735d-405e-86df-e5625b783d63",
+      "name": "Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        464
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "E7ASXFovwJjGLOin",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text || $json.message.text }}",
+        "options": {
+          "systemMessage": "=# Telegram Personal AI Assistant System Prompt\n    \n    You are a helpful personal AI assistant. You have two main functions:\n    \n    1.  **Financial Tracker:**\n        * When the user mentions an income (\"ingreso\") or an expense (\"egreso\"/\"gasto\"), your task is to \n     identify the type of transaction, the amount, and a brief description.\n        * You MUST then respond ONLY with a JSON object in the following structure. Do not add any other text \n     before or after the JSON.\n          {\n            \"intent\": \"financial_transaction\",\n            \"transaction\": {\n              \"type\": \"ingreso\" or \"egreso\",\n              \"description\": \"Description of the transaction\",\n              \"amount\": 123.45\n            }\n          }\n\n         * Examples of user messages: \"he gastado 15 euros en comida\", \"añade un ingreso de 500 por el trabajo \n      freelance\", \"apunta un gasto de 5.50 en un café\".\n         * If the user's message is ambiguous, ask for clarification before generating the JSON.\n     \n     2.  **General Conversation:**\n         * For any other topic, act as a helpful personal AI assistant that communicates with users through \n      Telegram.\n         * Keep responses conversational and friendly.\n         * When users send voice messages, respond naturally as if they spoke to you directly, without \n      mentioning the transcription.\n     \n     ## Context Awareness\n    * Remember the current date and time: **Today is {{ $now.format('cccc') }} the {{ $now.format('yyyy-MM-dd HH:mm') }}**.\n    \n    Remember: You're a personal assistant, so be personable and helpful."
+        }
+      },
+      "id": "dc4813c2-e20d-4958-8fdf-af1895909f23",
+      "name": "Assistant Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Recepción y Normalización de Entrada\nEste bloque gestiona el mensaje entrante del usuario:\n\nTrigger: Se activa con cualquier mensaje nuevo de Telegram.\n\nIF (Check if Audio): Revisa si el mensaje es de voz o de texto.\n\nRama Voz (True): Descarga el archivo de audio (Get a file) y lo convierte a texto (Transcribe audio).\n\nRama Texto (False): Simplemente toma el texto del mensaje (Set field).\n\nAmbas ramas terminan enviando un campo text unificado al siguiente paso.",
+        "height": 1088,
+        "width": 672,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        -272
+      ],
+      "typeVersion": 1,
+      "id": "a36a8403-3be8-4323-80bd-bab46d0a694f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = {};\n try {\n   // Intenta interpretar la salida del Agente como JSON\n   data = JSON.parse($input.item.json.output);\n   } catch (e) {\n   // Si falla, no es JSON, por lo tanto es una conversación\n   data.intent = 'conversation';\n   }\n   // Guarda la respuesta original del agente para usarla en la conversación\n  data.original_output = $input.item.json.output;\n    \n  return { json: data };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        224
+      ],
+      "id": "c898a138-cb00-4f19-95a0-05017d67a19c",
+      "name": "Parse Agent Output"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c5e5f5ad-e748-4fd0-9c94-c5091c99d8e4",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "financial_transaction",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        224
+      ],
+      "id": "ad5e66ea-f924-422e-86d2-a66a72ed3410",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA",
+          "mode": "list",
+          "cachedResultName": "ToDo_Finance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Finanzas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1744,
+        208
+      ],
+      "id": "7c342def-50e2-4f40-a1a7-33fb9c1c127a",
+      "name": "Get Last Balance",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcZSbjllvaDsf7WV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9b6eb83-fd06-4796-a5bd-563462697d74",
+              "name": "transaction_data",
+              "value": "={{ $('Parse Agent Output').first().json.transaction }}",
+              "type": "object"
+            },
+            {
+              "id": "5f809d76-70dd-4c96-8dde-fd53d3eb86d1",
+              "name": "last_balance",
+              "value": "={{ parseFloat($json[\"Saldo (€)\"]) || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "f0c16ff7-3a28-436e-8a31-e274f93b036d",
+              "name": "new_balance",
+              "value": "={{ $vars.transaction_data.type === 'ingreso' ? parseFloat($vars.last_balance) + parseFloat($vars.transaction_data.amount) : parseFloat($vars.last_balance) - parseFloat($vars.transaction_data.amount) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        480
+      ],
+      "id": "52aa390f-c9f7-40c6-a888-9de9faf4f359",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA",
+          "mode": "list",
+          "cachedResultName": "ToDo_Finance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Finanzas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D-r8HByfhnKACb3pN8Dcc18FVZzHb1XjO5rXGiIIDLA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "Descripción": "={{ $json.transaction_data.description }}",
+            "Tipo": "={{ $json.transaction_data.type }}",
+            "Saldo (€)": "={{ $json.new_balance }}",
+            "Monto (€) ": "={{ $json.transaction_data.amount }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo",
+              "displayName": "Tipo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Descripción",
+              "displayName": "Descripción",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Monto (€) ",
+              "displayName": "Monto (€) ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Saldo (€)",
+              "displayName": "Saldo (€)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2000,
+        480
+      ],
+      "id": "9f192d9f-f641-49cb-9e17-1b872bc576b1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcZSbjllvaDsf7WV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Message Trigger').first().json.message.chat.id }}",
+        "text": "=¡Transacción registrada! ✅  - Concepto: {{ $('Edit Fields').first().json.transaction_data.description }} - Importe: {{ $('Edit Fields').first().json.transaction_data.amount }}€ - Nuevo Saldo: {{ $('Edit Fields').first().json.new_balance }}€",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2256,
+        480
+      ],
+      "id": "927fe93f-0c2d-4ac7-9a91-d8319e8f6e94",
+      "name": "Send a text message",
+      "webhookId": "6b4e192b-8d29-453b-bf6d-ed98fe2ff586",
+      "credentials": {
+        "telegramApi": {
+          "id": "bmdlKiZzs6zswuyS",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        16
+      ],
+      "id": "120a9633-0dce-409c-8a8a-ddc164325492",
+      "name": "Telegram Message Trigger",
+      "webhookId": "1a71869f-eb43-4b3c-8eb9-bac05602a9cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "bmdlKiZzs6zswuyS",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Cerebro IA (Assistant Agent)\nEste es el núcleo del bot. El \"System Prompt\" está configurado para dos tareas:\n\nTracker Financiero: Si detecta una intención de \"ingreso\" o \"gasto\", su única respuesta debe ser un objeto JSON con los detalles.\n\nConversador: Para cualquier otro tema, debe actuar como un asistente de chat normal y responder con texto.\n\nUtiliza Memory para recordar el historial de conversación con cada usuario (chat.id).",
+        "height": 224,
+        "width": 752
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        -272
+      ],
+      "typeVersion": 1,
+      "id": "c1ed0bb3-70b8-40c4-81bb-aded6ae8ff1a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Parser y Enrutador de Intención\nEste bloque decide qué hacer con la respuesta de la IA:\n\nParse Agent Output (Code): Intenta decodificar la respuesta de la IA como JSON.\n\nSi tiene éxito (es un JSON), establece intent = \"financial_transaction\".\n\nSi falla (es texto), establece intent = \"conversation\".\n\nIF: Dirige el flujo basado en la intención.",
+        "height": 640,
+        "width": 752,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "a3ef2e61-d163-461d-98a1-6372fa14bd87",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Rama de Conversación\nSi la intención fue \"conversation\", el flujo viene aquí.\n\nSimplemente toma la respuesta de texto original de la IA (guardada en original_output) \ny la envía de vuelta al usuario en Telegram.",
+        "height": 192,
+        "width": 752,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "dc711d3c-4411-4ec0-bb10-d63c92530ea1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Rama de Registro Financiero\nSi la intención fue \"financial_transaction\", el flujo sigue estos pasos:\n\nGet Last Balance: Lee todas las filas de la hoja de Google Sheets.\n\nLimit: Se queda solo con la última fila para obtener el saldo más reciente.\n\nEdit Fields: Prepara los datos. Lo más importante: calcula el new_balance (Saldo Anterior +/- Monto de la Transacción).\n\nAppend row: Escribe la nueva fila en Google Sheets con todos los datos (Fecha, Descripción, Tipo, Monto, Nuevo Saldo).\n\nSend a text message: Envía un mensaje de confirmación personalizado al usuario informando que la transacción fue registrada con éxito.",
+        "height": 1088,
+        "width": 720,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        -272
+      ],
+      "typeVersion": 1,
+      "id": "c05d6201-40cb-4565-8830-c84d5ff0f8f7",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $items;\n\n// Itera por todas las filas, desde la ÚLTIMA hacia la PRIMERA\nfor (let i = allItems.length - 1; i >= 0; i--) {\n\n  // --- LÍNEA DE SEGURIDAD ---\n  // Si el item[i] está vacío o no tiene .json, sáltalo y sigue.\n  if (!allItems[i] || !allItems[i].json) {\n    continue;\n  }\n  \n  // Obtiene el valor de la celda \"Saldo (€)\"\n  const balance = allItems[i].json[\"Saldo (€)\"];\n  \n  // Revisa si la celda NO está vacía, nula o indefinida\n  if (balance !== null && balance !== undefined && balance !== \"\") {\n    \n    // ¡Encontrada! Es la última fila con saldo.\n    // Retorna SOLO esta fila y detiene el código.\n    return [allItems[i]];\n  }\n}\n\n// Si el bucle termina, significa que NINGUNA fila tiene saldo\n// Retornamos un objeto con saldo 0 para empezar los cálculos.\nreturn [{ json: { \"Saldo (€)\": 0 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        208
+      ],
+      "id": "18eda2e2-eca4-48c5-89d1-7d581a516992",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Audio file": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set field",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe audio": {
+      "main": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set field": {
+      "main": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Assistant Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assistant Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Agent Output": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Last Balance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply in Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Balance": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Message Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check if Audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "03f89869-1a17-43ef-a5c4-2ae692c24764",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fdffcaf648a7aa062da0ec843fff869b930e75adc5303a6a19e86b840cf683f2"
+  },
+  "id": "cXdqZjPg64NLAr9u",
+  "tags": []
+}
